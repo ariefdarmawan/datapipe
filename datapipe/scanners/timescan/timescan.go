@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/ariefdarmawan/byter"
-	"github.com/ariefdarmawan/datapipe"
+	"github.com/ariefdarmawan/datapipe/datapipe"
 	"github.com/eaciit/toolkit"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
