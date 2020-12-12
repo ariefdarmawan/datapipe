@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"git.kanosolution.net/kano/kaos"
-	"github.com/ariefdarmawan/datapipe"
+	"github.com/ariefdarmawan/datapipe/datapipe"
 	"github.com/eaciit/toolkit"
 )
 
