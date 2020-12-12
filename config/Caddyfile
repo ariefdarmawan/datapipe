@@ -1,0 +1,16 @@
+local.dev.kano.app:29000 {
+    tls internal
+
+    header -server
+    header /v1/* {
+        cache-control "no-cache, no-store, no-transform, must-revalidate, private, max-age=0"
+    }
+
+    # Proxy for SERVICES
+    reverse_proxy   /v1/*     localhost:29001
+    
+    
+    # Proxy for FRONTEND
+    rewrite         /               /public       # public portal
+    reverse_proxy   /public         localhost:29080     # public portal
+}
