@@ -15,13 +15,18 @@
       :show-new="showNew"
       :show-select="showSelect"
       :show-footer="listShowFooter"
-      :show-delete="listShowDelete"
+      :show-delete="showDelete"
       :external-editor="formSave!=''"
+      :prevent-dbl-click="preventDblClick"
       @editData="editData"
       @newData="newData"
     >
       <template v-for="nm in listCustomSlotNames" v-slot:[nm]="item">
         <slot :name="'list_'+nm" v-bind="item">
+        </slot>
+      </template>
+      <template v-slot:buttons="item">
+        <slot name="list_buttons" v-bind="item">
         </slot>
       </template>
     </k-grid-2>
@@ -74,9 +79,10 @@ export default {
     mode: {type:String, default:'list'},
     showSelect: {type:Boolean, default:false},
     showNew: {type:Boolean, default:true},
+    showDelete: {type:Boolean, default:true},
+    preventDblClick: {type:Boolean, default:false},
     listAutoAddLine: {type:Boolean, default:false},
     listInlineEditor: {type:Boolean, default:false},
-    listShowDelete: {type:Boolean, default:true},
     listShowFooter: {type:Boolean, default:true},
     listSaveUrl: {type:String, default:''},
     listDeleteUrl: {type:String, default:''},

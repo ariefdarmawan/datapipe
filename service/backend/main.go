@@ -64,6 +64,10 @@ func main() {
 	}
 	s.RegisterDataHub(h, "default")
 
+	// config
+	configurator := kconfigurator.NewConfigurator(appConfig)
+	s.RegisterModel(configurator.EventModel(), "/config").SetEvent(true).SetDeploy(false)
+
 	// model registration
 	mdb := kmdb.New()
 	mly := kmui.New()
@@ -71,10 +75,21 @@ func main() {
 	s.RegisterModel(new(model.Storage), "storage").SetMod(mdb, mly)
 	s.RegisterModel(new(model.Connection), "connection").SetMod(mdb, mly)
 	s.RegisterModel(new(model.Variable), "variable").SetMod(mdb, mly)
+	s.RegisterModel(new(model.ScannerInfo), "scanner").SetMod(mly)
+	s.RegisterModel(new(model.WorkerInfo), "worker").SetMod(mly)
 
+	coordinator := engine.NewCoordinator()
+	defer coordinator.CloseNodes(ev)
+
+	s.RegisterModel(coordinator, "coordinator").SetEvent(true).SetDeploy(false)
+	s.RegisterModel(coordinator.RESTEngine(), "coordinator").SetDeploy(true)
 	s.RegisterModel(new(engine.StorageEngine), "storage")
 
-	// mux
+	// deploy
+	if e = s.ActivateEvent(); e != nil {
+		log.Errorf("unable to deploy events: %s", e.Error())
+		os.Exit(1)
+	}
 	mux := http.NewServeMux()
 
 	if e = hd.NewHttpDeployer().Deploy(s, mux); e != nil {

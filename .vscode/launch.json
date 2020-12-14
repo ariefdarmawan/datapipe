@@ -15,7 +15,17 @@
           "args": [
               "-config=config/app.yml"
           ]
-      }
+      },
+      {
+        "name": "Launch TimeScan01 Service",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "preLaunchTask": "Delay",
+        "program": "${workspaceFolder}/service/timescan01/main.go",
+        "env": {},
+        "args": ["-key=KanoDataPipe2020"],            
+    }
   ],
   "compounds": [
       {
@@ -23,6 +33,7 @@
           "name": "Launch All Microservices",
           "configurations": [
               "Launch Backend Service",
+              "Launch TimeScan01 Service"
           ]
       }
   ]

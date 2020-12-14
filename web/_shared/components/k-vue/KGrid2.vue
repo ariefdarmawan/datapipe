@@ -112,6 +112,7 @@ export default {
     sourceParm: { type: Object, default: ()=>{}},
     gridType: { type: String, default: 'simple' },
     height: { type: [String, Function, Object], default: '' },
+    preventDblClick: {type:Boolean, default:false},
     showDebug: { type: Boolean, default: false },
     showSelect: { type: Boolean, default: true },
     showDelete: { type: Boolean, default: true },
@@ -217,6 +218,7 @@ export default {
     },
 
     dtEditRow (ev, obj) {
+      if (this.preventDblClick) return
       const editedItems = this.items.filter(x => x.mode=='edit')
       if (editedItems.length > 0) return
       this.edit(obj.item, 'dblClick')

@@ -1,15 +1,16 @@
 package kfsmn
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io/ioutil"
-	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/ariefdarmawan/datapipe/library/kfs"
 	"github.com/eaciit/toolkit"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
@@ -54,6 +55,10 @@ func (ls *minioStorage) Close() {
 }
 
 func (ls *minioStorage) List(searchPath string) ([]*kfs.Item, error) {
+	if searchPath != "" && !strings.HasSuffix(searchPath, "/") {
+		searchPath += "/"
+	}
+
 	res := []*kfs.Item{}
 	cObj := ls.mc.ListObjects(context.Background(), ls.bucketName, minio.ListObjectsOptions{Recursive: false, Prefix: searchPath})
 
@@ -62,13 +67,20 @@ func (ls *minioStorage) List(searchPath string) ([]*kfs.Item, error) {
 			continue
 		}
 
+		isFolder := fi.Key[len(fi.Key)-1] == '/'
+		fullName := fi.Key
+		if isFolder {
+			fullName = fi.Key[:len(fi.Key)-1]
+		}
+		names := strings.Split(fullName, "/")
+		name := names[len(names)-1]
 		item := new(kfs.Item)
 		item.SetStorage(ls)
-		item.Path = filepath.Join(searchPath, fi.Key)
-		item.FileName = fi.Key
+		item.Path = filepath.Join(searchPath, name)
+		item.FileName = name
 		item.FileSize = fi.Size
 		item.FileMode = 0744
-		item.DirFlag = false
+		item.DirFlag = isFolder
 		item.LastUpdate = fi.LastModified
 		res = append(res, item)
 	}
@@ -77,27 +89,26 @@ func (ls *minioStorage) List(searchPath string) ([]*kfs.Item, error) {
 }
 
 func (ls *minioStorage) Create(objPath string, dir bool) error {
-	fullpath := filepath.Join("", objPath)
-	if !dir {
-		if _, e := os.Create(fullpath); e != nil {
-			return e
-		}
-		return nil
+	if dir && !strings.HasSuffix(objPath, "/") {
+		objPath += "/"
 	}
 
-	if e := os.Mkdir(fullpath, 0644); e != nil {
+	var e error
+	if !dir {
+		bs := []byte("")
+		rdr := bytes.NewReader(bs)
+		_, e = ls.mc.PutObject(context.Background(), ls.bucketName, objPath, rdr, 0, minio.PutObjectOptions{})
+	} else {
+		_, e = ls.mc.PutObject(context.Background(), ls.bucketName, objPath, nil, 0, minio.PutObjectOptions{})
+	}
+	if e != nil {
 		return e
 	}
 	return nil
 }
 
 func (ls *minioStorage) Delete(objPath string, recursive bool) error {
-	fullpath := filepath.Join("", objPath)
-	if recursive {
-		return os.RemoveAll(fullpath)
-	}
-
-	return os.Remove(fullpath)
+	return ls.mc.RemoveObject(context.Background(), ls.bucketName, objPath, minio.RemoveObjectOptions{})
 }
 
 func (ls *minioStorage) Read(objPath string) ([]byte, error) {

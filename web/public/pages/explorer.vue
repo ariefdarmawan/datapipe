@@ -227,6 +227,7 @@ export default {
 
   watch: {
     selectedKFS (nv) {
+      this.paths = []
       this.explore()
     }
   },
@@ -245,7 +246,6 @@ export default {
 
   methods: {
     onResize () {
-      console.log('resize is called', window.innerHeight)
       this.windowHeight = window.innerHeight
     },
 
@@ -263,7 +263,7 @@ export default {
         Name: this.newFolderName
       }).
         then(r => {
-         this.modalCreateFolder = true 
+         this.modalCreateFolder = false 
          this.explore()
         }, e => this.$tool.error(e))
     },
@@ -296,7 +296,7 @@ export default {
       this.$axios.post('/storage/deletefiles',{
         KfsID: this.selectedKFS,
         Path: this.paths.join("/"),
-        Files: this.getFileNamesFromSelected()
+        Names: this.getFileNamesFromSelected()
       }).
         then(r => {
           this.$tool.info(this.selecteds.length + ' file(s) has been deleted')

@@ -17,7 +17,8 @@ require (
 	github.com/kanoteknologi/hd v0.0.0-20201106035827-cfd81094970e
 	github.com/kanoteknologi/knats v0.0.0-20201106035504-33b11d28da7f
 	github.com/logrusorgru/aurora v2.0.3+incompatible
-	github.com/minio/minio-go v6.0.14+incompatible
+	github.com/micro/go-micro/v2 v2.9.1 // indirect
+	github.com/minio/minio-go v6.0.14+incompatible // indirect
 	github.com/minio/minio-go/v7 v7.0.6
 	github.com/nats-io/nats.go v1.10.0
 	github.com/smartystreets/goconvey v1.6.4

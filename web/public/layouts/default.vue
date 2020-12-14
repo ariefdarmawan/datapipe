@@ -181,7 +181,14 @@ export default {
           ]
         },
         {label:"File Browser",icon:"mdi-folder-multiple",link:"/explorer"},
-        {label:"Dataflow",icon:"mdi-clipboard-flow",link:"/df/"},
+        {
+          label:"Dataflow",icon:"mdi-clipboard-flow",
+          menu: [
+            {label:"Scanner",link:"/df/scanner"},
+            {label:"Worker",link:"/df/worker"},
+            {label:"Data Pipe",link:"/df/flow"},
+          ]
+        },
         {
           label:"Account Management",
           icon:"mdi-shield-check",
