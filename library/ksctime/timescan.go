@@ -10,11 +10,23 @@ var (
 )
 
 type timeScan struct {
+	kdp.BaseScanner
+	id     string
 	config toolkit.M
 }
 
-func NewScanner(config toolkit.M) kdp.Scanner {
+func NewScanner(id string, config toolkit.M) kdp.Scanner {
 	ts := new(timeScan)
 	ts.config = config
+	ts.id = id
 	return ts
+}
+
+func (o *timeScan) ID() string {
+	return o.ID()
+}
+
+func (o *timeScan) Scan(request toolkit.M) ([]toolkit.M, bool, error) {
+	res := []toolkit.M{}
+	return res, false, nil
 }

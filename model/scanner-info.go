@@ -17,7 +17,7 @@ type ScannerNode struct {
 type ScannerInfo struct {
 	orm.DataModelBase `bson:"-" json:"-"`
 	ID                string                  `bson:"_id" json:"_id" key:"1"`
-	NodeCount         int                     `label:"Nodes"`
+	NodeCount         int                     `label:"Nodes" readonly:"1"`
 	Nodes             map[string]*ScannerNode `grid-show:"hide" form-show:"hide"`
 }
 

@@ -19,6 +19,7 @@ import (
 	"github.com/kanoteknologi/hd"
 	"github.com/kanoteknologi/knats"
 
+	"github.com/ariefdarmawan/datapipe/library/kdp"
 	_ "github.com/ariefdarmawan/datapipe/library/kfslocal"
 	_ "github.com/ariefdarmawan/datapipe/library/kfsmn"
 	_ "github.com/ariefdarmawan/flexmgo"
@@ -72,14 +73,34 @@ func main() {
 	mdb := kmdb.New()
 	mly := kmui.New()
 
+	coordinator := engine.NewCoordinator(h)
+	defer coordinator.CloseNodes(ev)
+
 	s.RegisterModel(new(model.Storage), "storage").SetMod(mdb, mly)
 	s.RegisterModel(new(model.Connection), "connection").SetMod(mdb, mly)
 	s.RegisterModel(new(model.Variable), "variable").SetMod(mdb, mly)
-	s.RegisterModel(new(model.ScannerInfo), "scanner").SetMod(mly)
-	s.RegisterModel(new(model.WorkerInfo), "worker").SetMod(mly)
+	s.RegisterModel(new(model.ScannerInfo), "scanner").SetMod(mdb, mly).
+		RegisterHook(func(ctx *kaos.Context, req *model.ScannerInfo) error {
+			coordinator.RegisterScanner(ctx, &model.ScannerNode{ScannerID: req.ID})
+			return nil
+		}, "PostSave").
+		RegisterHook(func(ctx *kaos.Context, req *model.ScannerInfo) error {
+			coordinator.DeregisterScanner(ctx, &model.ScannerNode{ScannerID: req.ID})
+			return nil
+		}, "PostDelete")
+	s.RegisterModel(new(model.WorkerInfo), "worker").SetMod(mdb, mly).
+		RegisterHook(func(ctx *kaos.Context, req *model.WorkerInfo) error {
+			coordinator.RegisterWorker(ctx, &model.WorkerNode{WorkerID: req.ID})
+			return nil
+		}, "PostSave").
+		RegisterHook(func(ctx *kaos.Context, req *model.ScannerInfo) error {
+			coordinator.DeregisterWorker(ctx, &model.WorkerNode{WorkerID: req.ID})
+			return nil
+		}, "PostDelete")
 
-	coordinator := engine.NewCoordinator()
-	defer coordinator.CloseNodes(ev)
+	s.RegisterModel(new(kdp.Pipe), "pipe").SetMod(mdb, mly)
+	s.RegisterModel(new(kdp.PipeItem), "pipeitem").SetMod(mly)
+	s.RegisterModel(new(kdp.PipeItemRoute), "pipeitemroute").SetMod(mly)
 
 	s.RegisterModel(coordinator, "coordinator").SetEvent(true).SetDeploy(false)
 	s.RegisterModel(coordinator.RESTEngine(), "coordinator").SetDeploy(true)

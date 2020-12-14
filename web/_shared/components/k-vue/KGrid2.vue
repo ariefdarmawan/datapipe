@@ -25,7 +25,7 @@
       :item-key="config.gridKey"
       :show-select="showSelect"
       :items="items"
-      :items-per-page="sourceParm.itemsPerPage ? sourceParm.itemsPerPage : -1"
+      :items-per-page="sourceParm && sourceParm.itemsPerPage ? sourceParm.itemsPerPage : -1"
       :loading="loading"
       :headers="tableHeaders"
       :hide-default-footer="!showFooter"
@@ -80,6 +80,8 @@
                 v-if="editIndex==-1 && showDelete"
                 @click="deleteItem(item)"><v-icon>mdi-delete</v-icon></v-btn>
             </slot>
+            <slot name="extra_buttons" v-bind="item">
+            </slot>
           </div>
       </template>
     </v-data-table>
@@ -108,7 +110,7 @@ export default {
   props: {
     value: { type:Object, default: ()=>{}},
     meta: { type: String, default: '' },
-    source: { type: [String, Function, Object], default: '' },
+    source: { type: [String, Function, Object, Array], default: '' },
     sourceParm: { type: Object, default: ()=>{}},
     gridType: { type: String, default: 'simple' },
     height: { type: [String, Function, Object], default: '' },
@@ -148,6 +150,10 @@ export default {
   },
 
   watch: {
+    source (nv) {
+      this.reload()
+    },
+
     editIndex (nv) {
       let items = this.items.map(x => {
         if (x.GridKey=='') this.assignGridKeyToItem(x)
@@ -426,6 +432,13 @@ export default {
     },
 
     reload () {
+      if (Array.isArray(this.source)) {
+        this.items = this.source.map(x => {
+          this.assignGridKeyToItem(x)
+          return x
+        })
+      }
+
       if (typeof this.source=='string' && this.source!='') {
         this.loading = true
 

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"git.kanosolution.net/kano/kaos"
+	"github.com/ariefdarmawan/datahub"
 	"github.com/ariefdarmawan/datapipe/model"
 	"github.com/eaciit/toolkit"
 )
@@ -13,10 +14,22 @@ type coordinator struct {
 	workers  map[string]*model.WorkerInfo
 }
 
-func NewCoordinator() *coordinator {
+func NewCoordinator(h *datahub.Hub) *coordinator {
 	c := new(coordinator)
 	c.scanners = make(map[string]*model.ScannerInfo)
 	c.workers = make(map[string]*model.WorkerInfo)
+
+	scanners := []*model.ScannerInfo{}
+	h.Gets(new(model.ScannerInfo), nil, &scanners)
+	for _, sc := range scanners {
+		c.scanners[sc.ID] = sc
+	}
+
+	workers := []*model.WorkerInfo{}
+	h.Gets(new(model.WorkerInfo), nil, &workers)
+	for _, sc := range workers {
+		c.workers[sc.ID] = sc
+	}
 	return c
 }
 
@@ -28,8 +41,16 @@ func (c *coordinator) RegisterScanner(ctx *kaos.Context, node *model.ScannerNode
 		sc = new(model.ScannerInfo)
 		sc.ID = node.ScannerID
 		c.scanners[node.ScannerID] = sc
+
+		h, _ := ctx.DefaultHub()
+		if h != nil {
+			h.Save(sc)
+		}
 	}
-	sc.RegisterNode(node)
+
+	if node.ID != "" {
+		sc.RegisterNode(node)
+	}
 
 	ctx.Log().Infof("register scanner %s node %s", node.ScannerID, node.ID)
 	return res, nil
@@ -38,12 +59,18 @@ func (c *coordinator) RegisterScanner(ctx *kaos.Context, node *model.ScannerNode
 func (c *coordinator) DeregisterScanner(ctx *kaos.Context, node *model.ScannerNode) (toolkit.M, error) {
 	res := toolkit.M{}
 
+	if node.ID == "" {
+		delete(c.scanners, node.ScannerID)
+		return res, nil
+	}
+
 	sc, ok := c.scanners[node.ScannerID]
 	if !ok {
 		sc = new(model.ScannerInfo)
 		sc.ID = node.ScannerID
 		c.scanners[node.ScannerID] = sc
 	}
+
 	sc.DeregisterNode(node.ID)
 
 	ctx.Log().Infof("deregister scanner %s node %s", node.ScannerID, node.ID)
@@ -53,13 +80,26 @@ func (c *coordinator) DeregisterScanner(ctx *kaos.Context, node *model.ScannerNo
 func (c *coordinator) RegisterWorker(ctx *kaos.Context, node *model.WorkerNode) (toolkit.M, error) {
 	res := toolkit.M{}
 
+	if node.ID == "" {
+		delete(c.scanners, node.WorkerID)
+		return res, nil
+	}
+
 	sc, ok := c.workers[node.WorkerID]
 	if !ok {
 		sc = new(model.WorkerInfo)
 		sc.ID = node.WorkerID
 		c.workers[node.WorkerID] = sc
+
+		h, _ := ctx.DefaultHub()
+		if h != nil {
+			h.Save(sc)
+		}
 	}
-	sc.RegisterNode(node)
+
+	if node.ID != "" {
+		sc.RegisterNode(node)
+	}
 
 	ctx.Log().Infof("register worker %s node %s", node.WorkerID, node.ID)
 	return res, nil

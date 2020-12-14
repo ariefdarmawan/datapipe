@@ -29,6 +29,10 @@
         <slot name="list_buttons" v-bind="item">
         </slot>
       </template>
+      <template v-slot:extra_buttons="item">
+        <slot name="list_extra_buttons" v-bind="item">
+        </slot>
+      </template>
     </k-grid-2>
     
     <k-form 
@@ -149,6 +153,7 @@ export default {
 
   methods: {
     cancelEdit () {
+      this.$emit('cancelEdit')
       this.listComponent.setEditIndex(-1)
       this.browserMode = 'list'
     },

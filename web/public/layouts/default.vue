@@ -186,7 +186,7 @@ export default {
           menu: [
             {label:"Scanner",link:"/df/scanner"},
             {label:"Worker",link:"/df/worker"},
-            {label:"Data Pipe",link:"/df/flow"},
+            {label:"Data Pipe",link:"/df/pipe"},
           ]
         },
         {

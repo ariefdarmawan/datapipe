@@ -17,12 +17,12 @@
           ]
       },
       {
-        "name": "Launch TimeScan01 Service",
+        "name": "Launch TimeScan Service",
         "type": "go",
         "request": "launch",
         "mode": "auto",
         "preLaunchTask": "Delay",
-        "program": "${workspaceFolder}/service/timescan01/main.go",
+        "program": "${workspaceFolder}/service/timescan/main.go",
         "env": {},
         "args": ["-key=KanoDataPipe2020"],            
     }
