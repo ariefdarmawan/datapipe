@@ -3,7 +3,7 @@ Hosts:
 Connections:
   default:
     Txt: mongodb://localhost:27017/datapipe 
-    PoolSize: 10
+    PoolSize: 5
 EventServer:
   Server: nats://localhost:4222
   Group: KanoDataPipe2020
