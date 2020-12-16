@@ -94,4 +94,4 @@ config/Caddyfile.*
 
 labs
 data/iam/*.json
-config/app.local.yml
+config/app.yml

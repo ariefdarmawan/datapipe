@@ -93,7 +93,7 @@ func main() {
 			coordinator.RegisterWorker(ctx, &model.WorkerNode{WorkerID: req.ID})
 			return nil
 		}, "PostSave").
-		RegisterHook(func(ctx *kaos.Context, req *model.ScannerInfo) error {
+		RegisterHook(func(ctx *kaos.Context, req *model.WorkerInfo) error {
 			coordinator.DeregisterWorker(ctx, &model.WorkerNode{WorkerID: req.ID})
 			return nil
 		}, "PostDelete")

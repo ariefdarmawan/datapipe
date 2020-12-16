@@ -8,16 +8,18 @@
 
       <k-browser-2
         list-mode="grid"
-        list-meta="/worker/gridconfig"
         list-source="/coordinator/workers"
+        list-meta="/worker/gridconfig"
+        list-save-url="/worker/save"
+        list-delete-url="/worker/delete"
+        :list-inline-editor="true"
         :list-source-parm="{itemsPerPage:-1}"
         :list-show-footer="false"
-        :show-new="false"
-        :show-delete="false"
-        :prevent-dbl-click="true"
+        :show-new="true"
+        :show-delete="true"
       >
-        <template v-slot:list_buttons="item">
-          <v-btn @click="showBeat(item)" icon color="primary">
+        <template v-slot:list_extra_buttons="item">
+          <v-btn @click="showBeat(item)" icon color="primary" x-small>
             <v-icon>mdi-playlist-check</v-icon>
           </v-btn>
         </template>
@@ -62,7 +64,7 @@
 import KBrowser2 from '@shared/components/k-vue/KBrowser2.vue'
 export default {
   components: { KBrowser2 },
-  name: 'DFworker',
+  name: 'DFWorker',
   data () {
     return {
       beatFlag: false,

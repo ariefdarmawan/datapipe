@@ -1,13 +1,13 @@
 <template>
   <div>
     <v-toolbar dense flat color="primary" height="32" dark>
-      <v-text-field 
+      <v-text-field v-if="showSearch"
         v-model="keyword"
         hide-details single-line dense 
         height="34"
         placeholder="keyword pencarian"></v-text-field>
       <v-spacer></v-spacer>
-      <v-btn small @click="reload" text>
+      <v-btn small @click="reload" text v-if="showReload">
         <v-icon left>mdi-refresh</v-icon>
         Reload
       </v-btn>
@@ -117,6 +117,8 @@ export default {
     preventDblClick: {type:Boolean, default:false},
     showDebug: { type: Boolean, default: false },
     showSelect: { type: Boolean, default: true },
+    showSearch: {type:Boolean, default:true},
+    showReload: {type:Boolean, default:true},
     showDelete: { type: Boolean, default: true },
     showFooter: { type: Boolean, default: true },
     showOptions: { type: Boolean, default: true },
@@ -435,6 +437,7 @@ export default {
       if (Array.isArray(this.source)) {
         this.items = this.source.map(x => {
           this.assignGridKeyToItem(x)
+          x.sync = true
           return x
         })
       }

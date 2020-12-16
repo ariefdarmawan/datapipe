@@ -33,7 +33,7 @@
           "name": "Launch All Microservices",
           "configurations": [
               "Launch Backend Service",
-              "Launch TimeScan01 Service"
+              "Launch TimeScan Service"
           ]
       }
   ]

@@ -11,6 +11,7 @@ type ScannerNode struct {
 	ID         string
 	ScannerID  string
 	Secret     string
+	Status     string
 	LastUpdate time.Time
 }
 

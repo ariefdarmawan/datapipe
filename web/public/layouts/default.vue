@@ -65,10 +65,10 @@
             :to="mn.link"
             :key="'top-menu-'+idx">
             <v-list-item-action style="margin-right:5px">
-              <v-icon>{{ mn.icon }}</v-icon>
+              <v-icon color="primary">{{ mn.icon }}</v-icon>
             </v-list-item-action>
             <v-list-item-content>
-              <v-list-item-title v-text="mn.label" />
+              <v-list-item-title color="primary" v-text="mn.label" />
             </v-list-item-content>
           </v-list-item>
 
@@ -87,10 +87,10 @@
                 :key="'top-menu-'+idx"
               >
                 <v-list-item-action style="margin-right:5px">
-                  <v-icon>{{ mn.icon }}</v-icon>
+                  <v-icon color="primary">{{ mn.icon }}</v-icon>
                 </v-list-item-action>
                 <v-list-item-content>
-                  <v-list-item-title v-text="mn.label" />
+                  <v-list-item-title color="primary" v-text="mn.label" />
                 </v-list-item-content>
               </v-list-item>
             </template>

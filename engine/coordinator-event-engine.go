@@ -22,12 +22,16 @@ func NewCoordinator(h *datahub.Hub) *coordinator {
 	scanners := []*model.ScannerInfo{}
 	h.Gets(new(model.ScannerInfo), nil, &scanners)
 	for _, sc := range scanners {
+		sc.Nodes = make(map[string]*model.ScannerNode)
+		sc.NodeCount = 0
 		c.scanners[sc.ID] = sc
 	}
 
 	workers := []*model.WorkerInfo{}
 	h.Gets(new(model.WorkerInfo), nil, &workers)
 	for _, sc := range workers {
+		sc.Nodes = make(map[string]*model.WorkerNode)
+		sc.NodeCount = 0
 		c.workers[sc.ID] = sc
 	}
 	return c
@@ -80,11 +84,6 @@ func (c *coordinator) DeregisterScanner(ctx *kaos.Context, node *model.ScannerNo
 func (c *coordinator) RegisterWorker(ctx *kaos.Context, node *model.WorkerNode) (toolkit.M, error) {
 	res := toolkit.M{}
 
-	if node.ID == "" {
-		delete(c.scanners, node.WorkerID)
-		return res, nil
-	}
-
 	sc, ok := c.workers[node.WorkerID]
 	if !ok {
 		sc = new(model.WorkerInfo)
@@ -108,6 +107,11 @@ func (c *coordinator) RegisterWorker(ctx *kaos.Context, node *model.WorkerNode) 
 func (c *coordinator) DeregisterWorker(ctx *kaos.Context, node *model.WorkerNode) (toolkit.M, error) {
 	res := toolkit.M{}
 
+	if node.ID == "" {
+		delete(c.workers, node.WorkerID)
+		return res, nil
+	}
+
 	sc, ok := c.workers[node.WorkerID]
 	if !ok {
 		sc = new(model.WorkerInfo)
@@ -129,7 +133,17 @@ func (c *coordinator) ScannerBeat(ctx *kaos.Context, node *model.ScannerNode) (t
 	}
 	if wn, ok := sc.Nodes[node.ID]; ok {
 		wn.LastUpdate = time.Now()
-		//ctx.Log().Infof("scanner %s-%s healthcheck %s", node.ScannerID, node.ID, wn.LastUpdate.String())
+	} else {
+		sc.Nodes[node.ID] = node
+		node.LastUpdate = time.Now()
+	}
+
+	for _, node := range sc.Nodes {
+		if time.Now().Sub(node.LastUpdate) > (15 * time.Minute) {
+			node.Status = "Error"
+		} else {
+			node.Status = "OK"
+		}
 	}
 	return res, nil
 }

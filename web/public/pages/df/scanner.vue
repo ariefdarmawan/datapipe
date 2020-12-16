@@ -45,7 +45,8 @@
           <v-list>
             <v-list-item v-for="(node) in item.Nodes" :key="'node-'+node._id">
               <v-list-item-action>
-                <v-icon small color="green">mdi-circle</v-icon>
+                <v-icon small color="green" v-if="node.Status!='Error'">mdi-circle</v-icon>
+                <v-icon small color="error" v-if="node.Status=='Error'">mdi-circle</v-icon>
               </v-list-item-action>
 
               <v-list-item-content>

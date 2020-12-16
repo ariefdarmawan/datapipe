@@ -13,6 +13,8 @@
       :delete-url="listDeleteUrl"
       :new-url="listNewUrl"
       :show-new="showNew"
+      :show-search="showSearch"
+      :show-reload="showReload"
       :show-select="showSelect"
       :show-footer="listShowFooter"
       :show-delete="showDelete"
@@ -82,6 +84,8 @@ export default {
   props: {
     mode: {type:String, default:'list'},
     showSelect: {type:Boolean, default:false},
+    showSearch: {type:Boolean, default:true},
+    showReload: {type:Boolean, default:true},
     showNew: {type:Boolean, default:true},
     showDelete: {type:Boolean, default:true},
     preventDblClick: {type:Boolean, default:false},
@@ -152,6 +156,11 @@ export default {
   },
 
   methods: {
+    refresh () {
+      this.browserMode="list"
+      this.$refs.grid.refresh()
+    },
+
     cancelEdit () {
       this.$emit('cancelEdit')
       this.listComponent.setEditIndex(-1)

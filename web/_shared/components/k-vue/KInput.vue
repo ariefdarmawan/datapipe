@@ -482,10 +482,16 @@ export default {
           this.listItems = r.data.map(d => {
             const itemText = this.lookupFields.map(x => d[x]).filter(x => x!='').join(" ")
 
-            return {
+            const item =  {
               value: d[this.lookupKey],
               text: d[this.lookupFields[0]]
             }
+
+            if (this.useList && !this.multiple && item.value==this.value) {
+              this.selected = item
+            }
+
+            return item
           })
           this.loading = false
         }

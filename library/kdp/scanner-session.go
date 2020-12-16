@@ -1,48 +1,62 @@
 package kdp
 
 import (
-	"context"
+	"fmt"
 	"time"
 
-	"git.kanosolution.net/kano/appkit"
-	"github.com/eaciit/toolkit"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type scannerSession struct {
-	log     *toolkit.LogEngine
-	ctx     context.Context
-	scanner Scanner
+	ID     string
+	pipeID string
+	sc     Scanner
+	cstop  chan bool
+	opts   *ScannerOptions
 }
 
-func NewScannerSession(ctx context.Context, log *toolkit.LogEngine, scanner Scanner) *scannerSession {
-	ss := &scannerSession{log: log, ctx: ctx, scanner: scanner}
-	return ss
-}
-
-func (ss *scannerSession) Log() *toolkit.LogEngine {
-	if ss.log == nil {
-		ss.log = appkit.LogWithPrefix(ss.scanner.ID())
+func NewScannerSession(sc Scanner, opts *ScannerOptions) (*scannerSession, error) {
+	ss := new(scannerSession)
+	ss.sc = sc
+	ss.pipeID = opts.Data.GetString("PipeID")
+	if ss.pipeID == "" {
+		return nil, fmt.Errorf("InvalidPipeID")
 	}
-	return ss.log
+	ss.opts = opts
+	ss.cstop = make(chan bool)
+	ss.ID = primitive.NewObjectID().Hex()
+	return ss, nil
 }
 
-func (ss *scannerSession) Run(req toolkit.M) {
-	opts := ss.scanner.Options()
+func (ss *scannerSession) stop() {
+	ss.cstop <- true
+}
+
+func (ss *scannerSession) run() {
+ExitLoop:
 	for {
 		select {
-		case <-time.After(opts.TickDuration):
-			res, scanned, err := ss.scanner.Scan(req)
+		case <-time.After(ss.opts.Tick):
+			ms, trigerred, err := ss.sc.Scan(ss.opts.Data, ss.opts.h, ss.opts.ev)
 			if err != nil {
-				ss.Log().Errorf("ScanError: %s", err.Error())
-				continue
+				ss.opts.log.Errorf("%s ScanFail: %s", ss.ID, err.Error())
+			}
+			if trigerred {
+				j := new(Job)
+				j.InitialData = ms
+				j.PipeID = ss.pipeID
+				if err = ss.opts.h.Save(j); err != nil {
+					ss.opts.log.Errorf("%s JobInitFail: %s", ss.ID[len(ss.ID)-5:], err.Error())
+				} else {
+					ss.opts.log.Infof("%s JobInitated %s", ss.ID[len(ss.ID)-5:], j.ID[len(j.ID)-5:])
+				}
 			}
 
-			if scanned {
-				ss.scanner.Datahub().SaveAny("DPJobs", toolkit.M{}.Set("Data", res))
-			}
+		case <-ss.cstop:
+			break ExitLoop
 
-		case <-ss.ctx.Done():
-			return
+		case <-ss.opts.ctx.Done():
+			break ExitLoop
 		}
 	}
 }
