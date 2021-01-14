@@ -1,312 +1,337 @@
 <template>
   <div>
-    <v-text-field  
-      v-model="inputValue"
-      ref="input_tf"
-      v-if="fieldType!='bool' && fieldType!='html' && items.length==0 && lookupUrl=='' && multiRow==1 && !multiple && !useList" 
-      :label='label'
-      :readonly='readOnly'
-      :dense="dense"
-      :hide-details="hideDetails"
-      :single-line='dense==true'
-      :type="hideValue ? 'password' : fieldType=='password' ? 'text':fieldType"
-      :rules="rules"
-      :append-icon="masked || fieldType=='password' ? hideValue ? 'mdi-eye-off' : 'mdi-eye' : ''"
-      @focus="onFocus"
-      @blur="onBlur"
-      @keyup.enter="onKeyEnter"
-      @click:append="hideValue=!hideValue"
-    />
-
-    <v-textarea 
-      v-model="inputValue"
-      outlined dense
-      ref="input_ta"
-      :hide-details="hideDetails"
-      :label='label'
-      :readonly='readOnly'
-      :type="masked?'password':fieldType"
-      :rules="rules"
-      :rows="multiRow"
-      v-if="fieldType!='bool' && fieldType!='html' && items.length==0 && lookupUrl=='' && multiRow>1" 
-      @focus="onFocus"
-      @blur="onBlur"
-    />
-
-    <div v-if="fieldType=='html'">{{ label }}</div>
-    <wysiwyg v-model="inputValue" v-if="fieldType=='html'" />
-
-    <template v-if="fieldType!='bool' && !allowAdd && !multiple && useList">
-      <v-autocomplete
-        v-model="selected"
-        v-if='lookupUrl==""'
-        :hide-details="hideDetails"
-        :items="listItems"
-        :readonly='readOnly'
-        :dense='dense==true'
-        :single-line='dense==true'
-        :multiple='multiple'
-        :label='label'
-        @focus="onFocus"
-        @blur="onBlur"
-      ></v-autocomplete>
-
-      <v-autocomplete
-        v-model="selected"
-        v-if='lookupUrl!=""'
-        :loading="loading"
-        :hide-details="hideDetails"
-        :items="listItems"
-        :readonly='readOnly'
-        :dense='dense==true'
-        :single-line='dense==true'
-        :multiple='multiple'
-        :label='label'
-        :search-input.sync='lookup'
-        @focus="onFocus"
-        @blur="onBlur"
-      >
-        <template v-slot:no-data>
-          <v-list-item>
-            <v-list-item-content>
-              <v-list-item-title>
-                No results matching "<strong>{{ lookup }}</strong>"
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </template>
-      </v-autocomplete>
-    </template>
-
-    <template v-if="fieldType!='bool' && allowAdd && !multiple && useList">
-      <v-combobox
-        v-model="selected"
-        v-if='lookupUrl==""'
-        :items="listItems"
-        :hide-details="hideDetails"
-        :readonly='readOnly'
-        :dense='dense==true'
-        :single-line='dense==true'
-        :multiple='multiple'
-        :label='label'
-        @focus="onFocus"
-        @blur="onBlur"
-      ></v-combobox>
-
-      <v-combobox
-        v-model="selected"
-        v-if='lookupUrl!=""'
-        :loading="loading"
-        :hide-details="hideDetails"
-        :items="listItems"
-        :readonly='readOnly'
-        :dense='dense==true'
-        :single-line='dense==true'
-        :multiple='multiple'
-        :label='label'
-        :search-input.sync='lookup'
-        @focus="onFocus"
-        @blur="onBlur"
-      >
-        <template v-slot:no-data>
-          <v-list-item>
-            <v-list-item-content>
-              <v-list-item-title>
-                No results matching "<strong>{{ lookup }}</strong>"
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </template>
-      </v-combobox>
-    </template>
-
-    <template v-if="fieldType!='bool' && !allowAdd && multiple && useList">
-      <v-autocomplete
-        v-model="selecteds"
-        v-if='lookupUrl==""'
-        :items="listItems"
-        :hide-details="hideDetails"
-        :readonly='readOnly'
-        :dense='dense==true'
-        :single-line='dense==true'
-        :multiple='multiple'
-        :label='label'
-        @focus="onFocus"
-        @blur="onBlur"
-      ></v-autocomplete>
-
-      <v-autocomplete
-        v-model="selecteds"
-        v-if='lookupUrl!=""'
-        :loading="loading"
-        :hide-details="hideDetails"
-        :items="listItems"
-        :readonly='readOnly'
-        :dense='dense==true'
-        :single-line='dense==true'
-        :multiple='multiple'
-        :label='label'
-        :search-input.sync='lookup'
-        @focus="onFocus"
-        @blur="onBlur"
-      >
-        <template v-slot:no-data>
-          <v-list-item>
-            <v-list-item-content>
-              <v-list-item-title>
-                No results matching "<strong>{{ lookup }}</strong>"
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </template>
-      </v-autocomplete>
-    </template>
-
-    <template v-if="fieldType!='bool' && allowAdd && multiple && useList">
-      <v-combobox
-        v-model="selecteds"
-        v-if="lookupUrl==''"
-        :items="listItems"
-        :hide-details="hideDetails"
-        :readonly='readOnly'
-        :dense='dense==true'
-        :single-line='dense==true'
-        :multiple='multiple'
-        :hide-selected='allowAdd'
-        :label='label'
-        :small-chips='multiple'
-        color="secondary"
-        @focus="onFocus"
-        @blur="onBlur"
-      >
-        <template v-slot:no-data>
-          <v-list-item v-if="allowAdd">
-            <v-list-item-content>
-              <v-list-item-title>
-                No results matching "<strong>{{ lookup }}</strong>". Press <kbd>enter</kbd> to create a new one
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </template>
-      </v-combobox>
-
-      <v-combobox
-        v-model="selecteds"
-        v-if="lookupUrl!=''"
-        :loading="loading"
-        :hide-details="hideDetails"
-        :items="listItems"
-        :readonly='readOnly'
-        :dense='dense==true'
-        :single-line='dense==true'
-        :multiple='multiple'
-        :hide-selected='allowAdd'
-        :label='label'
-        :search-input.sync='lookup'
-        small-chips='multiple'
-        color="secondary"
-        @focus="onFocus"
-        @blur="onBlur"
-      >
-        <template v-slot:no-data>
-          <v-list-item v-if="allowAdd">
-            <v-list-item-content>
-              <v-list-item-title>
-                No results matching "<strong>{{ lookup }}</strong>". Press <kbd>enter</kbd> to create a new one
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </template>
-      </v-combobox>
-    </template>
-
-    <v-checkbox
-      v-if="fieldType==='bool'"
-      :readonly='readOnly'
+    <v-checkbox v-if="fieldType === 'bool'"
+      :readonly="readOnly"
       :label="label"
       v-model="boolString"
       @change="onBlur"
       @blur="onBlur"
     ></v-checkbox>
-  </div>
+
+    <template v-else-if="fieldType==='json'">
+      {{ label  }}
+      <v-row>
+        <v-col cols="8">
+          <json-editor :obj-data="jsonData" v-model="jsonData" />
+        </v-col>
+        <v-col>
+          <v-textarea :rows="5" v-model="jsonDataStr" outlined style="height:100%" />
+        </v-col>
+      </v-row>
+    </template>
+
+    <template v-else-if="useList">
+      <template v-if="!allowAdd && !multiple">
+        <v-autocomplete
+          v-model="selected"
+          v-if="lookupUrl == ''"
+          :hide-details="hideDetails"
+          :items="listItems"
+          :readonly="readOnly"
+          :dense="dense == true"
+          :single-line="dense == true"
+          :multiple="multiple"
+          :label="label"
+          @focus="onFocus"
+          @blur="onBlur"
+        ></v-autocomplete>
+
+        <v-autocomplete
+          v-model="selected"
+          v-if="lookupUrl != ''"
+          :loading="loading"
+          :hide-details="hideDetails"
+          :items="listItems"
+          :readonly="readOnly"
+          :dense="dense == true"
+          :single-line="dense == true"
+          :multiple="multiple"
+          :label="label"
+          :search-input.sync="lookup"
+          @focus="onFocus"
+          @blur="onBlur"
+        >
+          <template v-slot:no-data>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>
+                  No results matching "<strong>{{ lookup }}</strong
+                  >"
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </template>
+        </v-autocomplete>
+      </template>
+
+      <template v-if="allowAdd && !multiple">
+        <v-combobox
+          v-model="selected"
+          v-if="lookupUrl == ''"
+          :items="listItems"
+          :hide-details="hideDetails"
+          :readonly="readOnly"
+          :dense="dense == true"
+          :single-line="dense == true"
+          :multiple="multiple"
+          :label="label"
+          @focus="onFocus"
+          @blur="onBlur"
+        ></v-combobox>
+
+        <v-combobox
+          v-model="selected"
+          v-if="lookupUrl != ''"
+          :loading="loading"
+          :hide-details="hideDetails"
+          :items="listItems"
+          :readonly="readOnly"
+          :dense="dense == true"
+          :single-line="dense == true"
+          :multiple="multiple"
+          :label="label"
+          :search-input.sync="lookup"
+          @focus="onFocus"
+          @blur="onBlur"
+        >
+          <template v-slot:no-data>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>
+                  No results matching "<strong>{{ lookup }}</strong
+                  >"
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </template>
+        </v-combobox>
+      </template>
+
+      <template v-if="!allowAdd && multiple">
+        <v-autocomplete
+          v-model="selecteds"
+          v-if="lookupUrl == ''"
+          :items="listItems"
+          :hide-details="hideDetails"
+          :readonly="readOnly"
+          :dense="dense == true"
+          :single-line="dense == true"
+          :multiple="multiple"
+          :label="label"
+          @focus="onFocus"
+          @blur="onBlur"
+        ></v-autocomplete>
+
+        <v-autocomplete
+          v-model="selecteds"
+          v-if="lookupUrl != ''"
+          :loading="loading"
+          :hide-details="hideDetails"
+          :items="listItems"
+          :readonly="readOnly"
+          :dense="dense == true"
+          :single-line="dense == true"
+          :multiple="multiple"
+          :label="label"
+          :search-input.sync="lookup"
+          @focus="onFocus"
+          @blur="onBlur"
+        >
+          <template v-slot:no-data>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>
+                  No results matching "<strong>{{ lookup }}</strong
+                  >"
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </template>
+        </v-autocomplete>
+      </template>
+
+      <template v-if=" allowAdd && multiple">
+        <v-combobox
+          v-model="selecteds"
+          v-if="lookupUrl == ''"
+          :items="listItems"
+          :hide-details="hideDetails"
+          :readonly='readOnly'
+          :dense='dense==true'
+          :single-line='dense==true'
+          :multiple='multiple'
+          :hide-selected='allowAdd'
+          :label='label'
+          :small-chips='multiple'
+          color="secondary"
+          @focus="onFocus"
+          @blur="onBlur"
+        >
+          <template v-slot:no-data>
+            <v-list-item v-if="allowAdd">
+              <v-list-item-content>
+                <v-list-item-title>
+                  No results matching "<strong>{{ lookup }}</strong
+                  >". Press <kbd>enter</kbd> to create a new one
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </template>
+        </v-combobox>
+
+        <v-combobox
+          v-model="selecteds"
+          v-if="lookupUrl != ''"
+          :loading="loading"
+          :hide-details="hideDetails"
+          :items="listItems"
+          :readonly='readOnly'
+          :dense='dense==true'
+          :single-line='dense==true'
+          :multiple='multiple'
+          :hide-selected='allowAdd'
+          :label='label'
+          :search-input.sync='lookup'
+          small-chips='multiple'
+          color="secondary"
+          @focus="onFocus"
+          @blur="onBlur"
+        >
+          <template v-slot:no-data>
+            <v-list-item v-if="allowAdd">
+              <v-list-item-content>
+                <v-list-item-title>
+                  No results matching "<strong>{{ lookup }}</strong
+                  >". Press <kbd>enter</kbd> to create a new one
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </template>
+        </v-combobox>
+      </template>
+    </template>
+
+    <template v-else>
+      <v-text-field v-if="multiRow == 1"
+        v-model="inputValue"
+        ref="input_tf"
+        :label="label"
+        :readonly="readOnly"
+        :dense="dense"
+        :hide-details="hideDetails"
+        :single-line="dense == true"
+        :type="hideValue ? 'password' : fieldType == 'password' ? 'text' : fieldType"
+        :rules="rules"
+        :append-icon="
+          masked || fieldType == 'password' ? (hideValue ? 'mdi-eye-off' : 'mdi-eye') : ''
+        "
+        @focus="onFocus"
+        @blur="onBlur"
+        @keyup.enter="onKeyEnter"
+        @click:append="hideValue = !hideValue"
+      />
+
+      <v-textarea v-else-if="multiRow > 1"
+        v-model="inputValue"
+        outlined
+        dense
+        ref="input_ta"
+        :hide-details="hideDetails"
+        :label="label"
+        :readonly="readOnly"
+        :type="masked ? 'password' : fieldType"
+        :rules="rules"
+        :rows="multiRow"
+        @focus="onFocus"
+        @blur="onBlur"
+      />
+    </template>
+ </div>
 </template>
 
 <script>
-export default {
-  name: 'KInput',
+
+export default 
+{
+  name: "KInput",
 
   props: {
-    value: { type: [String, Number, Boolean, Array], default: '' },
-    kind: { type: String, default: 'text' },
+    value: { type: [String, Number, Boolean, Array, Object], default: "" },
+    kind: { type: String, default: "text" },
     multiple: { type: Boolean, default: false },
     allowAdd: { type: Boolean, default: false },
     useList: { type: Boolean, default: false },
     hideDetails: { type: Boolean, default: false },
     items: {
       type: Array,
-      default () {
-        return []
-      }
+      default() {
+        return [];
+      },
     },
     rules: {
       type: Array,
-      default () {
-        return []
-      }
+      default() {
+        return [];
+      },
     },
-    multiRow: {type: Number, default: 1},
-    reference: { type: String, default: '' },
+    multiRow: { type: Number, default: 1 },
+    reference: { type: String, default: "" },
     masked: { type: Boolean, default: false },
-    label: { type: String, default: '' },
-    fieldType: { type: String, default: 'string' },
+    label: { type: String, default: "" },
+    fieldType: { type: String, default: "string" },
     dense: { type: Boolean, default: false },
     readOnly: { type: Boolean, default: false },
-    lookupUrl: { type: String, default: '' },
-    lookupKey: { type: String, default: '' },
+    lookupUrl: { type: String, default: "" },
+    lookupKey: { type: String, default: "" },
     lookupFields: {
       type: Array,
-      default () {
-        return []
-      }
+      default() {
+        return [];
+      },
     },
-    boolValue: {type: Boolean}
+    boolValue: { type: Boolean },
   },
 
-  data () {
+  data() {
     return {
       listItems: [],
-      hideValue: this.masked || this.fieldType=='password',
-      selected: {value:'', text:''},
+      hideValue: this.masked || this.fieldType == "password",
+      selected: { value: "", text: "" },
       selecteds: [],
       inputValue: this.format(this.value),
       loading: false,
       lookup: null,
       inputData: null,
-      boolString: this.fieldType=='bool' ? this.value : false
-    }
+      jsonData: {},
+      jsonDataStr: '{}',
+      boolString: this.fieldType == "bool" ? this.value : false
+    };
   },
 
   watch: {
-    value (nv) {
-      if (!this.useList){
-       this.inputValue = this.format(nv)
-       return
+    value(nv) {
+      this.jsonized(nv)
+      
+      if (!this.useList) {
+        this.inputValue = this.format(nv);
+        return;
       }
 
-      if (nv!='' && !this.multiple) {
-        const datas = this.listItems.filter(x => {
-          if (typeof x=='object') {
-            return x.value == nv
+      if (nv != "" && !this.multiple) {
+        const datas = this.listItems.filter((x) => {
+          if (typeof x == "object") {
+            return x.value == nv;
           }
-          return x == nv
-        })
+          return x == nv;
+        });
 
         if (datas.length > 0) {
-          this.selected = datas[0]
+          this.selected = datas[0];
         } else {
           this.selected = {
-            text: nv, value: nv
-          }
+            text: nv,
+            value: nv,
+          };
         }
         return
       } else if (nv!='' && this.multiple) {
@@ -315,67 +340,84 @@ export default {
         return
       }
 
-      if (nv=='') {
-        this.selected = {value:'', text:''}
-        if (this.selecteds.length > 0) this.selecteds = []
-      } else if (this.lookupUrl!='') {
+      if (nv == "") {
+        this.selected = { value: "", text: "" };
+        if (this.selecteds.length > 0) this.selecteds = [];
+      } else if (this.lookupUrl != "") {
         const filter = {
-          op: '$eq',
+          op: "$eq",
           field: this.lookupKey,
-          value: nv
-        }
+          value: nv,
+        };
 
         this.$axios({
           url: this.lookupUrl,
-          method: 'post',
+          method: "post",
           data: {
-            where: filter
-          }
-        }).then(r => {
-            this.listItems = r.data.map(d => {
-              if (d[this.lookupKey]==nv) {
-                this.selected ={
-                  value: d[this.lookupKey],
-                  text: d[this.lookupFields[0]]
-                }
-              }
-              return {
+            where: filter,
+          },
+        }).then((r) => {
+          this.listItems = r.data.map((d) => {
+            if (d[this.lookupKey] == nv) {
+              this.selected = {
                 value: d[this.lookupKey],
-                text: d[this.lookupFields[0]]
-              }
-            })
-            this.loading = false
-          }
-        )
+                text: d[this.lookupFields[0]],
+              };
+            }
+            return {
+              value: d[this.lookupKey],
+              text: d[this.lookupFields[0]],
+            };
+          });
+          this.loading = false;
+        });
       }
     },
 
     inputValue (nv) {
-      if (this.fieldType!='bool') {
-        this.$emit('input', this.encode(nv))
+      if (this.fieldType != "bool") {
+        this.$emit("input", this.encode(nv));
+      }
+    },
+
+    jsonData (nv) {
+      if (typeof this.value=='string') {
+        this.$emit('input',JSON.stringify(nv))
+      } else if (typeof this.value=='object') {
+        this.$emit('input',nv)
+      }
+
+      this.jsonDataStr = JSON.stringify(nv, null, 4)
+    },
+
+    jsonDataStr (nv) {
+      try {
+        this.jsonData = JSON.parse(this.jsonDataStr)
+      } catch {
       }
     },
 
     boolString (nv) {
-      if (this.fieldType=='bool') {
-        this.$emit('input', nv)
+      if (this.fieldType == "bool") {
+        this.$emit("input", nv);
       }
     },
 
-    selected (nv) {
-      if (!this.useList || this.multiple) return
+    selected(nv) {
+      if (!this.useList || this.multiple) return;
 
-      if (typeof nv === 'object' && nv!=null) {
-        this.inputValue = nv.value
+      if (typeof nv === "object" && nv != null) {
+        this.inputValue = nv.value;
       } else {
-        this.inputValue = nv
+        this.inputValue = nv;
       }
-      //console.log('post value selected: ' + this.inputValue)
+
+      //console.log("post value selected: " + this.inputValue);
     },
 
-    selecteds (nv) {
-      if (!this.multiple) return
-      this.inputValue = nv
+    selecteds(nv) {
+      if (!this.multiple) return;
+      this.inputValue = nv;
       //console.log('post value selected:', JSON.stringify(this.inputValue))
     },
     
@@ -383,12 +425,14 @@ export default {
       this.buildListItem(val)
     },
 
-    boolValue: function(val) {
+    boolValue: function (val) {
       this.boolString = val;
-    }
+    },
   },
  
   mounted () {
+    this.jsonized(this.value)
+
     if (!this.useList) return
 
     if (this.lookupUrl!='') {
@@ -401,38 +445,58 @@ export default {
       if (parts.length==1) {
         return {
           value: parts[0],
-          text: parts[0]
-        }
+          text: parts[0],
+        };
       } else {
         return {
           value: parts[0],
-          text: parts[1]
-        }
+          text: parts[1],
+        };
       }
-    })
-    
+    });
+
     if (!this.multiple) {
-      const sels = this.listItems.filter(x => x.value==this.value)
+      const sels = this.listItems.filter((x) => x.value == this.value);
       if (sels.length > 0) {
-        this.selected = sels[0]
+        this.selected = sels[0];
       } else {
-        this.selected = {text:this.value, value:this.value}
+        this.selected = { text: this.value, value: this.value };
+        //this.$refs.editor.setContent(this.value);
+        //console.log(this.$refs);
       }
     } else {
-      this.selecteds = this.value
+      this.selecteds = this.value;
     }
   },
 
   methods: {
-    focus () {
+    jsonized (nv) {
+      if (this.fieldType=='json') {
+        if (typeof nv=='string') {
+          if (nv=='') {
+            this.jsonData={}
+          } else {
+            try {
+              this.jsonData=JSON.parse(nv)
+            } catch {
+            }
+          }
+        } else if (typeof nv=='object') {
+          this.jsonData = nv
+          //console.log('json-input: ' + JSON.stringify(nv))
+        }
+      }
+    },
+
+    focus() {
       if (this.$refs.input_tf) {
-        this.$refs.input_tf.focus()
-        return
+        this.$refs.input_tf.focus();
+        return;
       }
 
       if (this.$refs.input_ta) {
-        this.$refs.input_ta.focus()
-        return
+        this.$refs.input_ta.focus();
+        return;
       }
     },
 
@@ -499,62 +563,61 @@ export default {
     },
 
     onFocus() {
-      if (this.fieldType!='bool') {
-        this.inputData = this.inputValue
+      if (this.fieldType != "bool") {
+        this.inputData = this.inputValue;
       } else {
         //console.log('value: ' + this.boolString)
-        this.inputData = this.boolString
+        this.inputData = this.boolString;
       }
     },
 
-    onKeyEnter () {
-      this.$emit('keyEnter', !this.boolString, this.boolString, this.reference)
+    onKeyEnter() {
+      this.$emit("keyEnter", !this.boolString, this.boolString, this.reference);
     },
 
     onBlur() {
-      if (this.fieldType!='bool')
-        this.$emit('blur', this.inputData, this.inputValue, this.reference)
-      else
-        this.$emit('blur', !this.boolString, this.boolString, this.reference)
+      if (this.fieldType != "bool")
+        this.$emit("blur", this.inputData, this.inputValue, this.reference);
+      else this.$emit("blur", !this.boolString, this.boolString, this.reference);
     },
 
-    format (value) {
-      let res = value
+    format(value) {
+      let res = value;
       switch (this.fieldType) {
-        case 'date':
-          res = this.$moment(value).format('yyyy-MM-DD')
+        case "date":
+          res = this.$moment(value).format("yyyy-MM-DD");
           break;
 
-        case 'time':
-          if (value==undefined || value==null){
-            value=0
+        case "time":
+          if (value == undefined || value == null) {
+            value = 0;
           }
-          let hr = Math.floor(value / 100)
-          let mn = value % 100
-          res = hr < 10 ? '0' + hr.toString() : hr.toString()
-          res += ':'     
-          res += mn < 10 ? '0' + mn.toString() : mn.toString()
+          let hr = Math.floor(value / 100);
+          let mn = value % 100;
+          res = hr < 10 ? "0" + hr.toString() : hr.toString();
+          res += ":";
+          res += mn < 10 ? "0" + mn.toString() : mn.toString();
       }
-      return res
+      return res;
     },
-    
-    encode (value) {
-      let res = value
-      switch (this.fieldType) {
-        case 'time':
-          let parts = value.split(":")
-          let hr = parseInt(parts[0])
-          let mn = parseInt(parts[1])
-          res = hr * 100 + mn
-          break
 
-        case 'numeric':
-          res = parseFloat(res)
-      } 
-      return res
-    }
-  }
-}
+    encode(value) {
+      let res = value;
+      switch (this.fieldType) {
+        case "time":
+          let parts = value.split(":");
+          let hr = parseInt(parts[0]);
+          let mn = parseInt(parts[1]);
+          res = hr * 100 + mn;
+          break;
+
+        case "numeric":
+          res = parseFloat(res);
+      }
+      return res;
+    },
+  },
+};
 </script>
 
 <style>
@@ -563,7 +626,7 @@ export default {
   padding-top: 4px;
 }
 
-.v-textarea textarea{
+.v-textarea textarea {
   line-height: 1.2em;
 }
 </style>

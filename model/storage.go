@@ -12,7 +12,7 @@ type Storage struct {
 	Description       string    `kf-pos:"3,1"`
 	Driver            string    `kf-pos:"1,2" required:"true" kf-list:"LocalStorage|Minio|AWS S3|HDFS"`
 	Connection        string    `kf-pos:"2,1" required:"true"`
-	Data              toolkit.M `grid-show:"hide" kf-pos:"4,1" kf-multirow:"5"`
+	Data              toolkit.M `grid-show:"hide" kf-pos:"4,1" kf-control:"json"`
 }
 
 func (o *Storage) TableName() string {

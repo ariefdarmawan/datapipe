@@ -13,19 +13,8 @@
         form-source='/storage/get'
         form-save='/storage/save'
         list-delete-url="/storage/delete"
-        :form-custom-fields="['Data']"
         @newData="newData"
-        @formEditData="editData"
-        @formBeforeSubmit="beforeSubmit"
       > 
-        <template v-slot:form_item_Data>
-          <b>Data</b>
-          <v-textarea
-              v-model="objectM"
-              outlined
-              rows="5"
-          />
-        </template>
       </k-browser-2>
     </v-card>
   </v-container>
@@ -38,21 +27,12 @@ export default {
   name: 'MasterStorage',
   data () {
     return {
-      objectM: ''
     }
   },
 
   methods: {
     newData (item) {
-      this.objectM = '{}'
-    },
-
-    editData (item) {
-      this.objectM = JSON.stringify(item.Data)
-    },
-
-    beforeSubmit (item) {
-      item.Data = JSON.parse(this.objectM)
+      this.objectM = {}
     }
   }
 }

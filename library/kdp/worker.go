@@ -19,6 +19,22 @@ type WorkerOptions struct {
 	log *toolkit.LogEngine
 }
 
+func (w *WorkerOptions) Context() context.Context {
+	return w.ctx
+}
+
+func (w *WorkerOptions) Hub() *datahub.Hub {
+	return w.h
+}
+
+func (w *WorkerOptions) Event() kaos.EventHub {
+	return w.ev
+}
+
+func (w *WorkerOptions) Log() *toolkit.LogEngine {
+	return w.log
+}
+
 func NewWorkerOptions(ctx context.Context, h *datahub.Hub, ev kaos.EventHub, log *toolkit.LogEngine, data toolkit.M) *WorkerOptions {
 	so := new(WorkerOptions)
 	so.ctx = ctx
@@ -42,7 +58,9 @@ type Worker interface {
 	Datahub() *datahub.Hub
 	SetEventHub(ev kaos.EventHub) Worker
 	EventHub() kaos.EventHub
-	Work(request toolkit.M, data *datahub.Hub, ev kaos.EventHub) (<-chan toolkit.M, error)
+	Work(request toolkit.M, data *WorkerSession, inputName string, channelResult chan<- toolkit.M) error
+	Collect(channelResult chan<- toolkit.M) error
+	Close(jobID string)
 }
 
 type BaseWorker struct {
@@ -115,6 +133,14 @@ func (b *BaseWorker) EventHub() kaos.EventHub {
 	return b.ev
 }
 
-func (b *BaseWorker) Work(request toolkit.M, h *datahub.Hub, ev kaos.EventHub) (<-chan toolkit.M, error) {
+func (b *BaseWorker) Work(request toolkit.M, ws *WorkerSession, inputName string, res chan<- toolkit.M) error {
+	panic("worker.Work is not implemented") // TODO: Implement
+}
+
+func (b *BaseWorker) Collect(chan<- toolkit.M) error {
+	panic("worker.Collect is not implemented")
+}
+
+func (b *BaseWorker) Close(jobID string) {
 	panic("not implemented") // TODO: Implement
 }

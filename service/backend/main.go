@@ -101,6 +101,9 @@ func main() {
 	s.RegisterModel(new(kdp.Pipe), "pipe").SetMod(mdb, mly)
 	s.RegisterModel(new(kdp.PipeItem), "pipeitem").SetMod(mly)
 	s.RegisterModel(new(kdp.PipeItemRoute), "pipeitemroute").SetMod(mly)
+	s.RegisterModel(new(kdp.Job), "job").SetMod(mdb, mly)
+	s.RegisterModel(new(kdp.PipeLog), "pipelog").SetMod(mdb, mly).AllowOnlyRoute("gridconfig", "gets")
+	s.RegisterModel(new(kdp.DataBank), "databank").SetMod(mdb, mly)
 
 	s.RegisterModel(coordinator, "coordinator").SetEvent(true).SetDeploy(false)
 	s.RegisterModel(coordinator.RESTEngine(), "coordinator").SetDeploy(true)

@@ -1,6 +1,9 @@
 <template>
   <v-container fluid>
-    <v-card>
+    <v-card
+      :height="dimension.windowHeight-100"
+      outlined
+    >
       <v-card-title>File Explorer</v-card-title>
       <v-card-text>
         <v-row>
@@ -54,7 +57,7 @@
         </v-row>  
 
         <v-row v-if="selectedKFS!=''">
-          <v-col>
+          <v-col style="font-size:12px">
             <a @click="changePath(0)">Root</a>
             <template v-for="(p,idx) in paths">
               <span :key="'span'+idx">
@@ -80,8 +83,8 @@
                 <v-checkbox small v-model="selecteds" :value="idx"></v-checkbox>
               </v-list-item-action>
               <v-list-item-content @click="selectContent(item)" style="cursor:pointer">
-                <v-list-item-title style="font-size:1em">{{ item.FileName }}</v-list-item-title>
-                <v-list-item-subtitle>
+                <v-list-item-title style="font-size:12px">{{ item.FileName }}</v-list-item-title>
+                <v-list-item-subtitle style="font-size:10px">
                   <span v-if="!item.DirFlag">{{ humanFileSize(item.FileSize) }} |</span>
                   {{ item.DirFlag ? 'Folder' : 'File' }}
                 </v-list-item-subtitle>
@@ -106,7 +109,7 @@
         <v-list>
           <v-list-item>
             <v-list-item-content>
-              <v-list-item-title style="font-size:1.4em">{{ selectedItem.FileName }}</v-list-item-title>
+              <v-list-item-title style="font-size:1.2sem">{{ selectedItem.FileName }}</v-list-item-title>
               <v-list-item-subtitle style="font-size:1em">Location: {{ paths.join("/") }}, Last Update: {{ selectedItem.LastUpdate  }}</v-list-item-subtitle>
               <v-list-item-subtitle style="font-size:1em">File Size: {{ humanFileSize(selectedItem.FileSize) }}</v-list-item-subtitle>
             </v-list-item-content>
@@ -200,12 +203,16 @@
 
 <script>
 import KInput from '@shared/components/k-vue/KInput.vue'
+import dimension from '@/mixin/dimension.js'
+
 export default {
   name: 'Explorer',
 
   components: {
     KInput
   },
+
+  mixins: [dimension],
 
   data () {
     return {

@@ -1,10 +1,13 @@
 package engine
 
 import (
+	"fmt"
 	"time"
 
 	"git.kanosolution.net/kano/kaos"
+	"git.kanosolution.net/kano/kaos/kpx"
 	"github.com/ariefdarmawan/datahub"
+	"github.com/ariefdarmawan/datapipe/library/kdp"
 	"github.com/ariefdarmawan/datapipe/model"
 	"github.com/eaciit/toolkit"
 )
@@ -162,6 +165,16 @@ func (c *coordinator) WorkerBeat(ctx *kaos.Context, node *model.WorkerNode) (too
 	return res, nil
 }
 
+func (obj *coordinator) SetVar(ctx *kaos.Context, request kdp.SetVarRequest) (string, error) {
+	h, _ := ctx.DefaultHub()
+	return kdp.SetVar(h, request)
+}
+
+func (obj *coordinator) GetVar(ctx *kaos.Context, request kdp.SetVarRequest) (kdp.SetVarRequest, error) {
+	h, _ := ctx.DefaultHub()
+	return kdp.GetVar(h, request)
+}
+
 func (c *coordinator) CloseNodes(ev kaos.EventHub) {
 	ev.Publish("/node/close", "", nil)
 }
@@ -170,4 +183,59 @@ func (c *coordinator) RESTEngine() *restCoordinator {
 	rc := new(restCoordinator)
 	rc.c = c
 	return rc
+}
+
+type CreateJobRequest struct {
+	PipeID string
+	Data   []toolkit.M
+}
+
+func (c *coordinator) CreateJob(ctx *kaos.Context, req *CreateJobRequest) (string, error) {
+	h, e := ctx.DefaultHub()
+	if e != nil {
+		return "", fmt.Errorf("InvalidHub: %s", e.Error())
+	}
+
+	j := new(kdp.Job)
+	j.PipeID = req.PipeID
+	j.InitialData = req.Data
+	if e = h.Save(j); e != nil {
+		return "", fmt.Errorf("DBError: %s", e.Error())
+	}
+
+	go func() {
+		pcx := kpx.NewProcessContextFromKxC(ctx)
+		err := j.Start(pcx)
+		if err != nil {
+			j.RaiseErr(pcx, err.Error())
+		}
+	}()
+
+	return j.ID, nil
+}
+
+type StopJobRequest struct {
+	JobID, Status string
+}
+
+func (c *coordinator) StopJob(ctx *kaos.Context, req *StopJobRequest) (string, error) {
+	h, _ := ctx.DefaultHub()
+	ev, _ := ctx.DefaultEvent()
+
+	j := new(kdp.Job)
+	j.ID = req.JobID
+	e := h.Get(j)
+	if e != nil {
+		return "", fmt.Errorf("InvalidJob: %s", e.Error())
+	}
+
+	for _, w := range j.Workers {
+		closeTopic := fmt.Sprintf("/%s/%s/stop", j.ID, w.PipeItem.ID)
+		ev.Publish(closeTopic, toolkit.M{}, nil)
+	}
+
+	j.Status = req.Status
+	h.Save(j)
+
+	return "", nil
 }

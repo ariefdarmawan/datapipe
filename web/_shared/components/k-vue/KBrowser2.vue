@@ -13,6 +13,7 @@
       :delete-url="listDeleteUrl"
       :new-url="listNewUrl"
       :show-new="showNew"
+      :show-edit="showEdit"
       :show-search="showSearch"
       :show-reload="showReload"
       :show-select="showSelect"
@@ -20,6 +21,7 @@
       :show-delete="showDelete"
       :external-editor="formSave!=''"
       :prevent-dbl-click="preventDblClick"
+      @dblClick="dblClick"
       @editData="editData"
       @newData="newData"
     >
@@ -86,6 +88,7 @@ export default {
     showSelect: {type:Boolean, default:false},
     showSearch: {type:Boolean, default:true},
     showReload: {type:Boolean, default:true},
+    showEdit: {type:Boolean, default:true},
     showNew: {type:Boolean, default:true},
     showDelete: {type:Boolean, default:true},
     preventDblClick: {type:Boolean, default:false},
@@ -156,6 +159,10 @@ export default {
   },
 
   methods: {
+    dblClick (item) {
+      this.$emit('dblClick', item)
+    },
+
     refresh () {
       this.browserMode="list"
       this.$refs.grid.refresh()
@@ -168,15 +175,20 @@ export default {
     },
 
     editData (item) {
+      if (typeof this.formSource!='string') return
+      if (typeof this.formSource=='string' && this.formSource=='') return
+      
       this.browserMode='form'
       this.formMode='edit'
       const config = this.listConfig
       const id = [item[config.keyField]]
+
       this.$axios.post(this.formSource,id).
         then(r => {
           const data = r.data
           this.$emit('formEditData', data)
           this.formDataSource = data
+          //console.log("kb2-get-data: "+JSON.stringify(data))
         }, e => {
           this.$tool.error(e);
         })

@@ -38,7 +38,12 @@ export default {
   plugins: [
     '~/plugins/cookie.js',
     '~/plugins/axios.js',
-    '~/plugins/tool.js'
+    '~/plugins/tool.js',
+    {
+      src: '~/plugins/vue-use.js',
+      mode: 'client',
+      ssr: false
+    }
   ],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)

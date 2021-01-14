@@ -11,7 +11,7 @@ import (
 	"git.kanosolution.net/kano/kaos"
 	"github.com/ariefdarmawan/byter"
 	"github.com/ariefdarmawan/datapipe/library/kdp"
-	"github.com/ariefdarmawan/datapipe/library/ksctime"
+	"github.com/ariefdarmawan/datapipe/library/mgowr"
 	"github.com/ariefdarmawan/kconfigurator"
 	"github.com/eaciit/toolkit"
 	"github.com/kanoteknologi/knats"
@@ -28,7 +28,8 @@ var (
 	nats           = flag.String("n", "nats://localhost:4222", "address of NATS server")
 	secret         = flag.String("key", "", "key-secret for msvc")
 	getConfigTopic = flag.String("topic", "/v1/config/get", "name of topic to get configuration")
-	serviceName    = "timescan"
+	serviceName    = mgowr.WorkerName
+	version        = "v1"
 	nodeID         string
 
 	log *toolkit.LogEngine
@@ -63,11 +64,12 @@ func main() {
 	}
 	defer h.Close()
 
-	s := kaos.NewService().SetLogger(log).SetContext(ctx).
+	s := kaos.NewService().SetLogger(log).SetContext(ctx).SetBasePoint(version).
 		RegisterDataHub(h, "default").
 		RegisterEventHub(ev, "default", appConfig.EventServer.Group)
 
-	ts := kdp.NewKxScanner(s, ksctime.NewScanner(nodeID))
+	ts := kdp.NewKxWorker(s, mgowr.NewEngine(nodeID))
+	defer ts.StopEngine()
 
 	// deployy
 	if err = s.ActivateEvent(); err != nil {

@@ -48,6 +48,7 @@
                               :show-navigation="false"
                             />
                           </div>
+
                           <div v-else-if="col.fieldType == 'bool'">
                             <KInput
                               v-model="item[col.field]"
@@ -65,6 +66,7 @@
                               :lookupFields="col.lookupFields"
                             />
                           </div>
+
                           <div v-else>
                             <KInput
                               v-model="item[col.field]"
@@ -92,7 +94,7 @@
                   <slot name="append-form" v-bind:item="item" />
                   <v-row>
                     <v-col class="mx-auto">
-                      <v-btn color="primary" @click="submitForm" small v-show='!hideDefaultSubmit'>
+                      <v-btn color="primary" @click="submitForm" small v-show='!hideDefaultSubmit' :width="submitFill ? '100%' : ''">
                         <v-icon left>mdi-content-save</v-icon>
                         {{ submitText }}
                       </v-btn>
@@ -146,6 +148,7 @@ export default {
     showTabs: { type: Boolean, default: false },
     submitText: { type: String, default: 'Save' },
     showClose: { type: Boolean, default: false },
+    submitFill: { type: Boolean, default: false },
     hideAfterSubmitOK: { type: Boolean },
     hideDefaultSubmit: { type: Boolean, default: false },
     tabBgColor: { type: String, default: 'secondary' },
@@ -352,6 +355,7 @@ export default {
 
           this.$axios.post(this.source, parm).
             then(r => {
+              console.log('post result: '+JSON.stringify(r.data))
               this.item = r.data
             }, e => {
               this.item = {}
@@ -364,6 +368,7 @@ export default {
           this.item = this.source
           this.$emit('assignDefault', this.item)
           this.tabModel = 0
+          //console.log('form-source-object: '+JSON.stringify(this.item))
           break
 
         case 'function':
@@ -428,6 +433,7 @@ export default {
         return
       }
       
+      //console.log("data to be saved:",JSON.stringify(parm))
       this.$axios.post(this.post,parm).then(
         r => {
           this.submitted = true

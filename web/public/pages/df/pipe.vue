@@ -16,18 +16,13 @@
         form-source='/pipe/get'
         form-save='/pipe/save'
         list-delete-url="/pipe/delete"
-        :list-custom-fields="['Status','Running']"
-        :form-custom-fields="['ScannerConfig','Items']"
+        :list-custom-fields="['Status','Running','ScanNodeID','ScanSessID']"
+        :form-custom-fields="['Items']"
         @newData="newData"
         @formEditData="editData"
         @formBeforeSubmit="beforeSubmit"
         @cancelEdit="showItemDlg=false"
       > 
-        <template v-slot:list_item_Status="item">
-          <v-chip small color="green" dark v-if="item.Status=='Active'">{{ item.Status }}</v-chip>
-          <v-chip small color="error" dark v-if="item.Status!='Active'">{{ item.Status }}</v-chip>
-        </template>
-
         <template v-slot:list_item_Running="item">
           <template v-if="item.Status=='Active'">
             <v-btn color="warning" x-small v-if="item.Running!='Running'" @click="startPipe(item)">
@@ -40,13 +35,12 @@
           </template>
         </template>
 
-        <template v-slot:form_item_ScannerConfig>
-          <b>Scanner Config</b>
-          <v-textarea
-            v-model="ScannerConfigM"
-            outlined
-            rows="3"
-          />
+        <template v-slot:list_item_ScanNodeID="item">
+          {{ item.ScanNodeID.substr(-8) }}
+        </template>
+
+        <template v-slot:list_item_ScanSessID="item">
+          {{ item.ScanSessID.substr(-8) }}
         </template>
         
         <template v-slot:form_item_Items>
@@ -87,7 +81,6 @@
           <v-icon small color="primary" class="ml-2" @click="showItemDlg=false">mdi-arrow-expand-right</v-icon>
         </v-toolbar>
 
-        <v-card-text>
           <k-form
             ref="frmItem"
             meta="/pipeitem/formconfig"
@@ -95,16 +88,8 @@
             :mode="itemDlgMode"
             :hide-default-submit="itemDlgMode=='edit'"
             @doSubmit="savePipeItem"
+            style="padding-left:10px"
           >
-            <template v-slot:item_Config>
-              <b>Worker Config</b>
-              <v-textarea
-                v-model="workerConfigM"
-                outlined
-                rows="3"
-              />
-            </template>
-
             <template v-slot:item_Routes>
               <b>Routes</b>
               <k-grid-2
@@ -129,7 +114,6 @@
               </v-btn>
             </template>
           </k-form>
-        </v-card-text>
 
       </v-navigation-drawer>
     </v-card>
@@ -148,8 +132,6 @@ export default {
   mixins: [dimension],
   data () {
     return {
-      ScannerConfigM: '',
-      workerConfigM: '',
       showItemDlg: false,
       itemDlgMode: '',
       pipeItem: {},
@@ -180,12 +162,11 @@ export default {
   methods: {
     newData (item) {
       item.Status = 'Inactive'
-      this.ScannerConfigM = '{}'
+      item.ScannerConfig = {}
       this.workerItems = {}
     },
 
     editData (item) {
-      this.ScannerConfigM = JSON.stringify(item.ScannerConfig)
       this.workerItems = item.Items
     },
 
@@ -209,15 +190,15 @@ export default {
 
     beforeSubmit (item) {
       if (this.showItemDlg) this.$refs.frmItem.submitForm()
-      item.ScannerConfig = JSON.parse(this.ScannerConfigM)
       item.Items = this.workerItems
     },
 
     addItem () {
       this.showItemDlg = true
       this.itemDlgMode = 'new',
-      this.pipeItem = {}
-      this.workerConfigM = '{}'
+      this.pipeItem = {
+        Config: {}
+      }
       this.routes = []
     },
 
@@ -230,7 +211,6 @@ export default {
       this.itemDlgMode = 'edit',
       this.pipeItem = pi
       this.routes = pi.Routes ? pi.Routes : []
-      this.workerConfigM = JSON.stringify(pi.Config)
     },
 
     deleteItem (pi) {
@@ -256,9 +236,6 @@ export default {
       Object.keys(this.workerItems).map(x => {
         res[x] = this.workerItems[x]
       })
-      try {
-        item.Config = JSON.parse(this.workerConfigM)
-      } catch(e) {}
       item.Routes = this.$refs.gridRoutes.dataItems()
       res[item.ID] = item
       this.workerItems = res

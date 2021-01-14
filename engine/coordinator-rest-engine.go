@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"git.kanosolution.net/kano/kaos"
+	"git.kanosolution.net/kano/kaos/kpx"
 	"github.com/ariefdarmawan/datapipe/library/kdp"
 	"github.com/ariefdarmawan/datapipe/model"
 	"github.com/eaciit/toolkit"
@@ -84,19 +85,27 @@ func (c *restCoordinator) StartPipe(ctx *kaos.Context, pipeID string) (toolkit.M
 		return res, fmt.Errorf("InvalidScanner: %s", p.ScannerID)
 	}
 
-	startM := toolkit.M{}
+	startResult := toolkit.M{}
+	config := toolkit.M{}
+	for k, v := range p.ScannerConfig {
+		config.Set(k, v)
+	}
+	config.Set("PipeID", p.ID)
+	//config, e = kdp.TranslateM(config, h, p.ID, "")
+	//ctx.Log().Infof("Config: %s", toolkit.JsonString(config))
+
 	if e = ev.Publish(strings.ToLower(fmt.Sprintf("/%s/create", p.ScannerID)),
-		p.ScannerConfig.Set("PipeID", pipeID),
-		&startM); e != nil {
+		config,
+		&startResult); e != nil {
 		return res, fmt.Errorf("RunPipeFail: %s", e.Error())
 	}
 
-	p.ScanNodeID = startM.GetString("NodeID")
-	p.ScanSessID = startM.GetString("SessionID")
+	p.ScanNodeID = startResult.GetString("NodeID")
+	p.ScanSessID = startResult.GetString("SessionID")
 	if e = h.Save(p); e != nil {
 		return res, nil
 	}
-	ctx.Log().Infof("%s is started, scanned by %s %s", p.ID, p.ScannerID, startM.GetString("NodeID"))
+	ctx.Log().Infof("%s is started, scanned by %s %s", p.ID, p.ScannerID, startResult.GetString("NodeID"))
 
 	return res, nil
 }
@@ -130,5 +139,39 @@ func (c *restCoordinator) StopPipe(ctx *kaos.Context, pipeID string) (toolkit.M,
 	}
 	ctx.Log().Infof("%s is stopped", p.ID)
 
+	pipeWorkerSessionStopTopic := "/worker/stop"
+	ev.Publish(pipeWorkerSessionStopTopic,
+		toolkit.M{}.Set("Kind", "PipeID").Set("Value", p.ID), nil)
+
 	return res, nil
+}
+
+func (c *restCoordinator) StartJob(ctx *kaos.Context, id string) (string, error) {
+	h, e := ctx.DefaultHub()
+	if e != nil {
+		ctx.Log().Errorf("InvalidHub: %s", e.Error())
+		return "", fmt.Errorf("InvalidHub: %s", e.Error())
+	}
+
+	j := new(kdp.Job)
+	j.ID = id
+	if e = h.Get(j); e != nil {
+		ctx.Log().Errorf("JobStartFail: %s", e.Error())
+		return "", fmt.Errorf("JobStartFail: %s", e.Error())
+	}
+	pcx := kpx.NewProcessContextFromKxC(ctx)
+	if e = j.Start(pcx); e != nil {
+		return "", j.RaiseErr(pcx, e.Error())
+	}
+	return j.ID, nil
+}
+
+func (c *restCoordinator) StopJob(ctx *kaos.Context, req *StopJobRequest) (string, error) {
+	res := ""
+	ev, _ := ctx.DefaultEvent()
+	e := ev.Publish("/coordinator/stopjob", req, &res)
+	if e != nil {
+		return "", e
+	}
+	return "", nil
 }

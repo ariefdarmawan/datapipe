@@ -3,15 +3,13 @@ package ksctime
 import (
 	"time"
 
-	"git.kanosolution.net/kano/kaos"
-	"github.com/ariefdarmawan/datahub"
 	"github.com/ariefdarmawan/datapipe/library/kdp"
 	"github.com/eaciit/toolkit"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var (
-	ScannerID = "TimeScan"
+	ScannerName = "TimeScan"
 )
 
 type timeScan struct {
@@ -33,10 +31,10 @@ func (o *timeScan) ID() string {
 }
 
 func (o *timeScan) Name() string {
-	return ScannerID
+	return ScannerName
 }
 
-func (o *timeScan) Scan(request toolkit.M, h *datahub.Hub, ev kaos.EventHub) ([]toolkit.M, bool, error) {
+func (o *timeScan) Scan(request toolkit.M, sess *kdp.ScannerSession) ([]toolkit.M, bool, error) {
 	tick := time.Duration(request.GetInt("Every"))
 	switch request.GetString("Unit") {
 	case "ms":
@@ -53,4 +51,7 @@ func (o *timeScan) Scan(request toolkit.M, h *datahub.Hub, ev kaos.EventHub) ([]
 	return []toolkit.M{
 		toolkit.M{}.Set("Code", primitive.NewObjectID().Hex()),
 	}, true, nil
+}
+
+func (o *timeScan) Close(id string) {
 }

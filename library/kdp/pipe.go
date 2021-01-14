@@ -13,10 +13,11 @@ type Pipe struct {
 	ScannerID         string              `kf-pos:"2,1" kf-lookup:"/coordinator/findscanner|_id|_id" kf-allow-add:"1"`
 	Status            string              `kf-pos:"2,2" kf-list:"Inactive|Active"`
 	Running           string              `readonly:"1" form-show:"hide"`
-	ScannerConfig     toolkit.M           `grid-show:"hide" kf-pos:"3,1"`
+	ScannerConfig     toolkit.M           `grid-show:"hide" kf-pos:"3,1" kf-control:"json"`
 	ScanNodeID        string              `readonly:"1" form-show:"hide"`
 	ScanSessID        string              `readonly:"1" form-show:"hide"`
-	Items             map[string]PipeItem `grid-show:"hide"  kf-pos:"4,1"`
+	Items             map[string]PipeItem `grid-show:"hide"  kf-pos:"3,2"`
+	Data              toolkit.M           `grid-show:"hide" form-show:"hide"`
 }
 
 func (o *Pipe) TableName() string {

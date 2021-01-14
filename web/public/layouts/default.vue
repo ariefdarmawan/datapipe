@@ -22,7 +22,7 @@
       
       <v-spacer />
       
-      <div v-if="$store.state.auth==''">
+      <div v-if="$store.state.auth==''" v-show="false">
         <v-btn small text :to="'/iam/login'">Login</v-btn>
       </div>
 
@@ -178,6 +178,7 @@ export default {
             {label:"Storage",link:"/master/storage"},
             {label:"Connection",link:"/master/conn"},
             {label:"Variable",link:"/master/variable"},
+            {label:"Data Bank",link:"/master/databank"},
           ]
         },
         {label:"File Browser",icon:"mdi-folder-multiple",link:"/explorer"},
@@ -187,6 +188,8 @@ export default {
             {label:"Scanner",link:"/df/scanner"},
             {label:"Worker",link:"/df/worker"},
             {label:"Data Pipe",link:"/df/pipe"},
+            {label:"Job",link:"/df/job"},
+            {label:"Log",link:"/df/log"},
           ]
         },
         {
@@ -277,7 +280,6 @@ h1 {
 
 .v-card__subtitle, .v-card__text, .v-card__title{
   padding:10px;
-  font-size:1em;
 }
 
 .theme--light.v-card > .v-card__text, .theme--light.v-card .v-card__subtitle{

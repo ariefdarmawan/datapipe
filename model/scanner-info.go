@@ -5,6 +5,7 @@ import (
 
 	"git.kanosolution.net/kano/dbflex"
 	"git.kanosolution.net/kano/dbflex/orm"
+	"github.com/eaciit/toolkit"
 )
 
 type ScannerNode struct {
@@ -17,8 +18,10 @@ type ScannerNode struct {
 
 type ScannerInfo struct {
 	orm.DataModelBase `bson:"-" json:"-"`
-	ID                string                  `bson:"_id" json:"_id" key:"1"`
-	NodeCount         int                     `label:"Nodes" readonly:"1"`
+	ID                string                  `bson:"_id" json:"_id" key:"1" kf-pos:"1,1"`
+	Description       string                  `grid-show:"hide" kf-multirow:"5" kf-pos:"2,1"`
+	ConfigTemplate    toolkit.M               `grid-show:"hide" kf-pos:"3,1" kf-control:"json"`
+	NodeCount         int                     `label:"Nodes" readonly:"1" form-show:"hide"`
 	Nodes             map[string]*ScannerNode `grid-show:"hide" form-show:"hide"`
 }
 

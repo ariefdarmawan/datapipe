@@ -8,7 +8,7 @@
       <k-browser-2
         :list-inline-editor="true"
         :list-show-footer="false"
-        :list-auto-add-line="true"
+        :list-auto-add-line="false"
         list-mode='grid'
         list-meta='/variable/gridconfig'
         list-source='/variable/gets'
@@ -32,24 +32,10 @@
 import KBrowser2 from '@shared/components/k-vue/KBrowser2.vue'
 export default {
   components: { KBrowser2 },
-  name: 'MasterStorage',
+  name: 'MasterVariable',
   data () {
     return {
       objectM: ''
-    }
-  },
-
-  methods: {
-    newData (item) {
-      this.objectM = '{}'
-    },
-
-    editData (item) {
-      this.objectM = JSON.stringify(item.Data)
-    },
-
-    beforeSubmit (item) {
-      item.Data = JSON.parse(this.objectM)
     }
   }
 }

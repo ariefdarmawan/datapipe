@@ -6,6 +6,7 @@ import (
 
 	"git.kanosolution.net/kano/appkit"
 	"git.kanosolution.net/kano/kaos"
+	"git.kanosolution.net/kano/kaos/kpx"
 	"github.com/ariefdarmawan/datahub"
 	"github.com/eaciit/toolkit"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,22 +15,35 @@ import (
 type ScannerOptions struct {
 	Tick time.Duration
 	Data toolkit.M
-
-	ctx context.Context
-	h   *datahub.Hub
-	ev  kaos.EventHub
-	log *toolkit.LogEngine
+	Pcx  *kpx.ProcessContext
 }
 
-func NewScannerOptions(ctx context.Context, h *datahub.Hub, ev kaos.EventHub, log *toolkit.LogEngine, tick time.Duration, data toolkit.M) *ScannerOptions {
+func NewScannerOptions(
+	ctx context.Context, h *datahub.Hub, ev kaos.EventHub, log *toolkit.LogEngine,
+	tick time.Duration, data toolkit.M) *ScannerOptions {
 	so := new(ScannerOptions)
-	so.ctx = ctx
-	so.h = h
-	so.ev = ev
+
+	so.Pcx = kpx.New(ctx, h, ev, log, data)
+
 	so.Tick = tick
 	so.Data = data
-	so.log = log
 	return so
+}
+
+func (w *ScannerOptions) Context() context.Context {
+	return w.Pcx.Context()
+}
+
+func (w *ScannerOptions) Hub() *datahub.Hub {
+	return w.Pcx.DataHub()
+}
+
+func (w *ScannerOptions) Event() kaos.EventHub {
+	return w.Pcx.Event()
+}
+
+func (w *ScannerOptions) Log() *toolkit.LogEngine {
+	return w.Pcx.Log()
 }
 
 type Scanner interface {
@@ -45,7 +59,8 @@ type Scanner interface {
 	Datahub() *datahub.Hub
 	SetEventHub(ev kaos.EventHub) Scanner
 	EventHub() kaos.EventHub
-	Scan(request toolkit.M, data *datahub.Hub, ev kaos.EventHub) ([]toolkit.M, bool, error)
+	Close(id string)
+	Scan(request toolkit.M, sess *ScannerSession) ([]toolkit.M, bool, error)
 }
 
 type BaseScanner struct {
@@ -118,6 +133,9 @@ func (b *BaseScanner) EventHub() kaos.EventHub {
 	return b.ev
 }
 
-func (b *BaseScanner) Scan(request toolkit.M, h *datahub.Hub, ev kaos.EventHub) ([]toolkit.M, bool, error) {
+func (b *BaseScanner) Close(id string) {
+}
+
+func (b *BaseScanner) Scan(request toolkit.M, sess *ScannerSession) ([]toolkit.M, bool, error) {
 	panic("not implemented") // TODO: Implement
 }

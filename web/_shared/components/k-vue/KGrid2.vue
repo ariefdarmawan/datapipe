@@ -29,7 +29,9 @@
       :loading="loading"
       :headers="tableHeaders"
       :hide-default-footer="!showFooter"
-      @dblclick:row="dtEditRow"
+      :server-items-length="typeof source=='string' && source!='' ? dataCount : items.length"
+      :options.sync="options"
+      @dblclick:row="onDblClick"
     >
       <template v-for="(col, idx) in tableHeaders" v-slot:[col.slotName]="{item}">
           <div :key="'k-item-data-'+idx" v-if="col.field != 'k_options'">
@@ -72,7 +74,7 @@
 
               <v-btn 
                 icon x-small color="primary"
-                v-if="editIndex==-1"
+                v-if="editIndex==-1 && showEdit"
                 @click="edit(item)"><v-icon>mdi-border-color</v-icon></v-btn>
 
               <v-btn 
@@ -86,7 +88,8 @@
       </template>
     </v-data-table>
 
-    <div id="debug" v-if="showDebug" class="ma-4">
+    <div id="debug" class="ma-4" v-if="showDebug">
+      options: {{ options }}<br/><br/>
       props: {{ $props }}<br/><br/>
       config: {{ config }}<br/><br/>
       editindex: {{ editIndex }} <br/>
@@ -117,6 +120,7 @@ export default {
     preventDblClick: {type:Boolean, default:false},
     showDebug: { type: Boolean, default: false },
     showSelect: { type: Boolean, default: true },
+    showEdit: { type: Boolean, default: true },
     showSearch: {type:Boolean, default:true},
     showReload: {type:Boolean, default:true},
     showDelete: { type: Boolean, default: true },
@@ -136,6 +140,7 @@ export default {
         gridKey: 'GridKey',
         headers: []
       },
+      options: {},
       editEventSource: '',
       keyword: '',
       dataCount: 0,
@@ -154,6 +159,13 @@ export default {
   watch: {
     source (nv) {
       this.reload()
+    },
+
+    options: {
+      handler () {
+        this.refresh()
+      },
+      deep: true,
     },
 
     editIndex (nv) {
@@ -225,8 +237,11 @@ export default {
       return this.config
     },
 
-    dtEditRow (ev, obj) {
-      if (this.preventDblClick) return
+    onDblClick (ev, obj) {
+      if (this.preventDblClick) {
+        this.$emit('dblClick', obj.item)
+        return
+      }
       const editedItems = this.items.filter(x => x.mode=='edit')
       if (editedItems.length > 0) return
       this.edit(obj.item, 'dblClick')
@@ -269,7 +284,7 @@ export default {
         this.items = this.items.filter(x => x.GridKey != item.GridKey)
         return
       }
-
+      
       if (!this.isAllKeyExist(item)) {
         this.items = this.items.filter(x => x.GridKey != item.GridKey)
         return
@@ -352,6 +367,8 @@ export default {
       Vue.nextTick(() => {
         this.entryMode = 'new'
         this.editIndex = this.items.length - 1
+
+        if (typeof this.source=='string' && this.source!='') this.dataCount=this.items.length
       })
     },
 
@@ -444,12 +461,7 @@ export default {
 
       if (typeof this.source=='string' && this.source!='') {
         this.loading = true
-
         const parm = {}
-        for (const attr in this.sourceParm) {
-          parm[attr] = this.sourceParm[attr]
-        }
-
         // build a where
         if (this.keyword && this.keyword!='') {
           const filters = this.config.searchFields.map(x => {
@@ -460,8 +472,18 @@ export default {
           parm.where = {op: '$or', items: filters}
         }
 
+        const { sortBy, sortDesc, page, itemsPerPage } = this.options
+        parm.take = itemsPerPage
+        parm.skip = (page-1) * itemsPerPage 
+        if (sortBy) parm.sort = sortBy.map((x,i) => {
+          return sortDesc[i] ? '-' + x : x
+        })
+
         this.$axios.post(this.source, parm).
           then(r => {
+            if (r.data.data==undefined) {
+              return
+            }
             const items = r.data.data.map(x => {
               this.assignGridKeyToItem(x)
               x.sync = true

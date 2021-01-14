@@ -10,13 +10,15 @@
         list-mode="grid"
         list-source="/coordinator/workers"
         list-meta="/worker/gridconfig"
-        list-save-url="/worker/save"
         list-delete-url="/worker/delete"
-        :list-inline-editor="true"
+        form-meta="/worker/formconfig"
+        form-source="/worker/get"
+        form-save="/worker/save"
         :list-source-parm="{itemsPerPage:-1}"
         :list-show-footer="false"
         :show-new="true"
         :show-delete="true"
+        @newData="newData"
       >
         <template v-slot:list_extra_buttons="item">
           <v-btn @click="showBeat(item)" icon color="primary" x-small>
@@ -85,6 +87,10 @@ export default {
   },
 
   methods: {
+    newData (item) {
+      item.ConfigTemplate={}
+    },
+
     onResize () {
       this.windowHeight = window.innerHeight
     },
